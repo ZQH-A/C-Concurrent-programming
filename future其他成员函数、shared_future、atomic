@@ -1,0 +1,8 @@
+1.std::future成员函数wait_for(时间);调用这个函数在等待的时间内如果线程还没有执行完它将会返回std::future_status::timeout,在规定的时间内执   行完后返回std::future_status::ready,当在std::async()中调用std::launch::deferred参数时，返回std::future_status::deffered
+  std::future_status 枚举类型  共有三种类型  timeout、ready、deffered
+2.std::share_future
+  std::future的get（）函数是移动语义，所以调用一次后std::future类对象中的值就没有了，所以只能调用一次get（）函数。
+  如果有多个线程需要使用 std::future的值，那么就需要使用std::share_future(类模板)，就可以多次调用get（）函数
+  std::share_future a(std::move( std::future类对象);  std::share_future a(std::future类对象的share（）成员函数);
+3.原子操作  在多线程中不会被打断的程序片段，要么没做，要么做了，不可能存在正在做被抢占。
+4.std::atomic 是一个类模板，主要用于某一个变量的操作。可以减少互斥量的操作。例：std::atomin<int> g=5;可以对变量执行一个简单的读写，复杂的读写还是需要互斥量。

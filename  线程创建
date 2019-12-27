@@ -1,0 +1,30 @@
+1.主线程从main（）函数开始执行，自己创建的线程也从一个函数执行，函数执行完后，线程结束。一般情况：主线程执行完毕，子线程会被操作系统强行终止。所以如果想让子线程保持运行状态，则需要让主线程一直运行。（但也有例外）
+2.包含thread 头文件 ，thread是 标准库中的类
+3.join（） 阻塞主线程等待子线程执行完毕良好的程序应该等待子线程执行完毕。
+4.detech（）分离主线程和子线程，主线程不必等待子线程的执行，但主线程执行完后，不影响子线程的执行（驻留在后台运行）。
+5.joinable():判断是否可以使用join（）和detech（），返回true或false 。一个线程只能使用一次join（）或detech（）
+问题：1.在创建子线程时如果使用了主线程的一个或多个引用，然后子线程在使用detech（）时，可能会出现问题。如果主线程先执行完，那么主线程中变量都会被
+销毁，那么这时子线程中引用的变量就会是未定义的，程序可能出错（解决：使用变量传递的值（拷贝））
+2.在使用类的（）重载函数时，子线程会把类复制进去(可以使用类的拷贝构造函数验证)，即使子线程使用的是detech（），主线程先于子线程执行完毕（在主线程中的类的对象被销毁），子线程也还可以继续执行，但如果有主线程的引用或指针，可能会报错
+
+创建线程的方法：1、函数指针
+             2、函数对象（重载（）运算符函数）
+             3、Lambda函数
+             4、类对象使用成员函数作为线程入口
+             
+             //使用std::ref会将实际参数与形式参数相关联，就像真的使用了引用，所以使用jion（），防止出现错误
+             
+             例子：1.void mythread（//..）{//....}
+                  2.class Mythread
+                  {  void operator(//..)(){//...}}//需要创建一个对象
+                  3.auto mythread =[] {//....}
+                  
+                  Mythread mythread;
+                  std::thread myobj(mythread,//....);
+                  在2中，在mythread前加std::ref（不会执行拷贝构造函数），不能使用detech（）
+                  4.class Mythread{ void thread_work(//...){//...}}
+                  Mythread mythread;
+                  std::thread myobj(&Mythread::thread_work,mythread,//...(参数)）;
+                  在mythread前可以加std::ref或者&（不会执行拷贝构造函数），但是就不能使用detech（）函数
+                  
+                  如果类中有std::mutex作为成员，则要使用std::thread myobj(std::ref(mythread),//....);和std::thread myobj(&Mythread::thread_work,&mythread,//...(参数)）;

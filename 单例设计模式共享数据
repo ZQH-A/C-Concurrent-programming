@@ -1,0 +1,51 @@
+尽量在主线程中就声明单例类型的对象，在子线程中会加大难度,需要防止多个线程同时声明对象。
+1.单例类：std::mutex m_mutex;（在多线程中使用）
+        std::once_flag g_flag;
+        class A
+        {
+        private：
+            A(）{};
+        private:
+            static A* m_instance;
+        public:
+            static void Instance()
+            {
+                m_instance= new A();
+                static B b;
+            }
+            static A* GetInstance()
+            {
+        第一种写法if(m_instance==NULL)//双重锁定（在多线程中使用）
+                {
+                    std::unique_lock<std::mutex> mymutex(m_mutex);（在多线程中使用）
+                    if(m_instance==NULL)
+                    {
+                        m_instance= new A();
+                        static B b;
+                    }
+                }
+                return m_instance;
+        第二种写法 std::call_once(g_flag,Instance);
+                 return m_instance;
+            }
+            
+            class B//类中套类用于释放对象
+            {
+            public:
+                ~B()
+                {
+                    if(A::m_instance){
+                        delete A::m_instance;
+                        A::m_instance=NULL;
+                    }
+                }
+            }            
+        }
+        A *A::m_instance=NULL;//类的静态成员初始化
+        
+        A *my=A::GetInstance();
+2.在单例设计模式中可能会有多个线程需要获得该类的对象，但在第一次执行GetInstance（）函数时可能会出现多个线程同时初始化该类，所以要使用互斥量mutex。
+3.std::call_once()是一个函数模板，它有两个参数，一个是std::once_flag标记对象，一个是函数。这个模板只会让某个函数只执行一次。
+  std::once_flag g_flag;
+  A ();//将只能执行一次的代码放到函数A中
+  std::call_once(g_flag,A);

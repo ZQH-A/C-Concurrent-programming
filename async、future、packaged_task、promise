@@ -1,0 +1,11 @@
+1.std::async是一个函数模板，用来启动一个异步任务，返回一个std::future对象（创建一个线程并执行线程入口函数），fature对象含有线程入口函数返回的结果。
+2.可以通过future的get（）函数获取返回的结果。不能马上得到结果，要在线程入口函数返回时才能得到结果。
+3.例子：int mythread(){//...}     std::future<int> myfature=std::async(mythread)
+4.在主线程调用future的get（）函数会使主线程等到该线程返回后才继续执行，并且只能调用一个get（）函数，也可以使用wait（）成员函数等待。
+5.std::async（）也可以使用类的成员函数，与std::tread的用法一样
+6.参数std::launch::deferred表示线程入口函数调用被延迟到std::future的wait（）或get（）函数被调用时才执行。但没有调用wait（）和get（）则不会创建线程执行线程入口函数。参数std::launch::deferred并不会创建一个线程，就在主线程中执行入口函数。
+7.参数std::launch::async在调用std::async时就创建线程。例子：std::async(std::launch::deferred，mythread)
+8.std::packaged_task  类模板  作用：打包任务，方便作为线程入口函数   参数：可调用函数或lambda表达式
+  std::packaged_task<函数返回值（函数参数）>  对象名（函数名）；  std::thread mythread(std::ref(对象名)，参数）
+  也可以用std::future 获得函数的返回值，std::packaged_task对象也可以直接调用，相当于函数调用。
+9.std::promise 类模板  在某个线程给他复制，然后在另一个线程中使用。与vector相似，在线程入口函数中使用引用时，要使用std::ref()移动语义。也可以用std::fature 获得其中的值

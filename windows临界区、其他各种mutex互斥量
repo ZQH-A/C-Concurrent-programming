@@ -1,0 +1,5 @@
+1.recursive_mutex递归的独占互斥量  可以lock（）多次（但也必须是一个线程），但也要解锁相应的次数。 效率要比mutex要低 std:mutex  独占互斥量 只能允许一个线程lock（），且只能lock（）一次。
+2.到超时的互斥量std::timed_mutex
+  std::recursive_time_mutex 带超时功能的独占互斥量。
+  成员函数  try_lock_for()参数是一段时间，等待一段时间，不管锁没锁住，流程继续
+  try_lock_until（）参数是一个未来的时间点，当到达该时间点时，不管锁没锁住，流程继续

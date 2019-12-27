@@ -1,0 +1,29 @@
+创建多个线程：
+1.使用容器来创建和管理多个线程
+2.多个线程的执行顺序是乱的，使用join（）更容易写出稳定程序
+
+只读数据：
+没有问题，安全且稳定
+
+读写数据：
+1.在同一时刻只能有一个线程读写
+2.互斥量 mutex 一个类对象（可以作为一个类的成员）  mutex头文件，在类中使用了std::mutex作为成员时，在创建线程时，要使用类对象的引用或者std::ref，否则会出现问题。
+3.lock（）和unlock（）必须成对出现
+4.std::lock_guard 类模板 可以取代lock和unlock  例：std::mutex m_mutex;  std::lock_guard<std::mutex> mylock(m_mutex);
+但是这个生成的类是在构造函数中lock，在析构函数中unlock，所以可以把要加锁的代码单独提出来写成一个函数，或者在要加锁的代码加{}
+5.死锁：互相等待对方释放资源（锁）。解决方法：锁锁住的顺序一致。
+6.std::lock() 一次锁住两个或两个以上的互斥量。但需要自己解锁（unlock（））。如果std::lock()发现有一个互斥量被锁住，那么它会释放掉它锁住的互斥量，等待全部互斥量都可锁住为止。
+7.std::lock()和std::lock_guard一起使用：先使用std::lock()将所有互斥量都锁住，然后使用std::lock_guard<std::mutex> ...(...,std::adopt_lock)生成一个对象，参数std::adopt_lock(起一个标记作用,表示互斥量已经被lock（）了)可以使在执行std::lock_guard的构造函数时不使用lock（）函数（因为已经锁住），在std::lock_guard的析构函数中会解锁互斥量，所以不需要在使用unlock（）函数。
+8.std::adopt_lock 表示互斥量已经被lock，通知在std::lock_guard的构造函数中不再需要lock。
+9.std::unique_lock用法与std::lock_guard基本一样，但灵活一些，效率差一些，占用内存更多。
+  第二个参数std::adopt_lock在std::unique_lock的意义与std::lock_guard意义相同
+  第二个参数std::try_to_lock尝试去锁住互斥量，如果已被锁住，不会向lock和std::lock_guard一样阻塞，它可以继续往下执行，使用该对象的own_locks()成员函数判断是否是该对象锁住了互斥量
+  第二个参数std::defer_lock初始化一个对象，但不会加锁互斥量
+10.std::unique_lock的成员函数：lock（）、unlock（）、try_lock()、release（）
+   try_lock（）尝试去锁，如果把互斥量锁住，则返回true，没有锁住则返回false,不阻塞
+   release()解除std::unique_lock与互斥量的绑定，返回指向互斥量的指针。如果在解除绑定前已经lock（），则有责任负责解锁
+11.std::unique_lock所有权的传递：一个unique_lock只能与一个互斥量绑定，但互斥量的所有权可以移动（即互斥量的所有权从一个unique_lock到另一个unique_lock）。
+   std::mutex m_mutex;
+   std::unique_lock<std::mutex> mymutex(m_mutext);
+   std::unique_lock<std::mutex> mymutex1(std::move(m_mutext));//左值转为右值，并使用std::unique_lock的移动构造函数。
+   或者可以写一个返回值为std::unique_lock的函数也可以转移互斥量的所有权。
